@@ -1,45 +1,122 @@
-#include <iostream>
-#include "glad/glad.h"
+﻿#include "Te_S_La.h"
+#include "Camera.h"
+#include "utils/events/KeyEvents.h"
 #include "GLFW/glfw3.h"
 
-constexpr int width = 800;
-constexpr int height = 700;
+int windowHeight = 800;
+int windowWidth = 1200;
 
-void LogGLFWErrors(int errorCode, const char* description)
+float nearPlane = 0.1f;
+float farPlane = 200.0f;
+
+glm::mat4 projection = glm::perspective(glm::radians(70.0f), static_cast<float>(windowWidth)/static_cast<float>(windowHeight), nearPlane, farPlane);
+glm::mat4 view = glm::lookAt(glm::vec3(0.0f, 0.0f, 0.6f), glm::vec3(0), glm::vec3(0, 1, 0));
+
+
+TESLA::Model* ImportModel(const char* fileName)
 {
-    std::cout << "GLFW ERROR, code = " << errorCode << ", description = " << description;
+    TESLA::Shader vertexShader(TESLA::ShaderType::Vertex);
+    TESLA::Shader fragmentShader(TESLA::ShaderType::Fragment);
+    TESLA::Texture albedo(TESLA::TextureType::Albedo, TESLA::TextureExtension::Jpg);
+
+    uint32_t shaderProgram = TESLA::Shader::CompileProgram({vertexShader, fragmentShader});
+
+    return new TESLA::Model{fileName, shaderProgram, albedo.GetGLTexture(), view, projection};
 }
 
-void ResizeWindow(GLFWwindow* _, int newWidth, int newHeight)
+std::vector<TESLA::Model*> sceneObjects;
+bool rotate;
+bool orthographic;
+bool trace;
+
+void Init()
 {
-    glViewport(0, 0, newWidth, newHeight);
-}
+    TESLA::Application::Start(windowWidth, windowHeight, "PBF Demo");
 
-int main()
-{
-    glfwInit();
-    glfwSetErrorCallback(LogGLFWErrors);
+    TESLA::Texture goldBricks(TESLA::TextureType::Albedo, TESLA::TextureExtension::Jpg, "GoldBrick");
+    
+    TESLA::Model* sphere = ImportModel("Sphere");
+    sphere->SetColour(glm::vec3(0.4, 0.1, 0.3));
+    
+    sceneObjects.push_back(new TESLA::Model(*sphere));
+    sceneObjects[0]->Translate(glm::vec3(2, 0, 2));
+    sceneObjects[0]->SetTexture(goldBricks);
 
-    GLFWwindow* window = glfwCreateWindow(width, height, "Position Based Fluids Demo", nullptr, nullptr);
-    glfwMakeContextCurrent(window);
+    sceneObjects.push_back(new TESLA::Model(*sphere));
 
-    bool gladLoaded = gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress));
-    std::cout << (gladLoaded ? "GLFW successfully initialized" : "GLFW failed to initialize") << "/n";
-    glViewport(0, 0, width, height);
-
-    glfwSetFramebufferSizeCallback(window, ResizeWindow);
-    glfwSwapInterval(1);
-
-    while (!glfwWindowShouldClose(window))
+    TESLA::EventListener::Subscribe({[](TESLA::Event* event)
     {
-        glEnable(GL_DEPTH_TEST);
-        glDepthFunc(GL_LESS);
-        glClearColor(0.1f, 0.1f, 0.1f, 0.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        auto castedEvent = dynamic_cast<TESLA::KeyboardButtonEvent*>(event);
+        if(castedEvent->GetKeycode() == GLFW_KEY_O)
+        {
+            rotate = !rotate;
+        }
+        else if(castedEvent->GetKeycode() == GLFW_KEY_SPACE)
+        {
+            orthographic = !orthographic;
+        }
+        else if(castedEvent->GetKeycode() == GLFW_KEY_M)
+        {
+            TESLA::ExitApplication();
+        }
+        else if(castedEvent->GetKeycode() == GLFW_KEY_P)
+        {
+            trace = !trace;
+        }
+    },TESLA::EventType::ButtonPressed, TESLA::EventCategory::Keyboard
+    });
+
+    Camera::Init();
+}
+
+float angle;
+float moveTime;
+glm::vec3 lightPosition = glm::vec3(-1, 5, 0);
+
+void Render()
+{
+    for (TESLA::Model* model : sceneObjects)
+    {
+        if(rotate)
+        {
+            model->Rotate(angle, glm::vec3(0, 1, 0));
+            angle++;
+        }
+        if(trace)
+        {
+            model->SetLightColour({0.6, 0.1, 0.1});
+            float xValue = glm::sin(moveTime) / 10;
+            float zValue = glm::cos(moveTime) / 10;
+            
+            lightPosition = {xValue + lightPosition.x, 5.0f, zValue + lightPosition.z};
+            moveTime += 0.005;
+        }
+        else
+        {
+            model->SetLightColour(glm::vec3(1.0f, 1.0f, 1.0f));
+        }
         
-        glfwPollEvents();
-        glfwSwapBuffers(window);
+        model->Draw(Camera::cameraPosition, lightPosition);
     }
 
-    glfwTerminate();
+    if(orthographic)
+    {
+        projection = glm::ortho(-2.0f, 2.0f, -2.0f, 2.0f, nearPlane, farPlane);
+    }
+    else
+    {
+        projection = glm::perspective(glm::radians(70.0f), static_cast<float>(windowWidth)/static_cast<float>(windowHeight), nearPlane, farPlane);
+    }
+        
+    glm::mat4 newView = Camera::CalculateView();
+    if(newView != glm::mat4(1))
+    {
+        view = newView;
+    }
+}
+
+void CleanUp()
+{
+    TS_LOG_MESSAGE(TESLA_LOGGER::DEBUG, "Application ended");
+    sceneObjects.clear();
 }
