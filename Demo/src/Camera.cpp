@@ -78,7 +78,7 @@ void KeyCallback(TESLA::Event* event)
     case GLFW_KEY_D:
         dDown = pressed;
         break;
-    case GLFW_KEY_LEFT_ALT:
+    case GLFW_KEY_SPACE:
         spaceDown = pressed;
         break;
     case GLFW_KEY_LEFT_CONTROL:

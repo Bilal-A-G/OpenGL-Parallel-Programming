@@ -45,11 +45,9 @@ namespace TESLA
         void SetColour(glm::vec3 colour){m_colour = colour;}
         void SetLightColour(glm::vec3 colour){m_lightColour = colour;}
         void SetTexture(TESLA::Texture texture){m_texture = texture.GetGLTexture();}
-    
-        const uint32_t GetShaderProgram()
-        {
-            return m_shaderProgram;
-        }
+        void UpdateInstancePositions(std::vector<glm::mat4> newModels);
+        
+        uint32_t GetShaderProgram(){return m_shaderProgram;}
     public:
         glm::vec3 position = glm::vec3(0);
     private:
@@ -64,6 +62,16 @@ namespace TESLA
         uint32_t m_vao;
         glm::vec3 m_colour;
         glm::vec3 m_lightColour;
+        uint32_t m_positionsBuffer;
+
+        uint32_t m_modelLocation;
+        uint32_t m_viewLocation;
+        uint32_t m_colourLocation;
+        uint32_t m_lightColourLocation;
+        uint32_t m_lightLocation;
+        uint32_t m_projectionLocation;
+        uint32_t m_viewerPositionLocation;
+        uint32_t m_lightPositionLocation;
 
         int m_instanceCount;
 

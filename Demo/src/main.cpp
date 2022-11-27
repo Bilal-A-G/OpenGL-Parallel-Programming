@@ -11,19 +11,18 @@ float farPlane = 200.0f;
 
 glm::mat4 projection = glm::perspective(glm::radians(70.0f), static_cast<float>(windowWidth)/static_cast<float>(windowHeight), nearPlane, farPlane);
 glm::mat4 view = glm::lookAt(glm::vec3(0.0f, 0.0f, 0.6f), glm::vec3(0), glm::vec3(0, 1, 0));
+std::vector<glm::mat4> modelMatrices;
 
-
-TESLA::Model* ImportModel(const char* fileName, int instanceCount)
+TESLA::Model* ImportModel(const char* fileName, int instanceCount, glm::mat4 initPos)
 {
     TESLA::Shader vertexShader(TESLA::ShaderType::Vertex);
     TESLA::Shader fragmentShader(TESLA::ShaderType::Fragment);
     TESLA::Texture albedo(TESLA::TextureType::Albedo, TESLA::TextureExtension::Jpg);
 
     uint32_t shaderProgram = TESLA::Shader::CompileProgram({vertexShader, fragmentShader});
-    std::vector<glm::mat4> modelMatrices;
     for(int i = 0; i < instanceCount; i++)
     {
-        modelMatrices.push_back(glm::translate(glm::mat4(1), glm::vec3(rand() % 100 - 1, rand() % 100 - 1, rand() % 100 - 1)));
+        modelMatrices.push_back(glm::translate(initPos, glm::vec3(rand() % 100 - 1, rand() % 100 - 1, rand() % 100 - 1)));
     }
 
     return new TESLA::Model{fileName, shaderProgram, albedo.GetGLTexture(), view, projection, instanceCount, modelMatrices};
@@ -37,30 +36,19 @@ bool trace;
 void Init()
 {
     TESLA::Application::Start(windowWidth, windowHeight, "PBF Demo");
-    
-    TESLA::Model* sphere = ImportModel("Sphere", 100000);
-    sphere->Scale(glm::vec3(0.3, 0.3, 0.3));
+
+    glm::mat4 initPos = glm::translate(glm::mat4(1), glm::vec3(0, -50, 100));
+    TESLA::Model* sphere = ImportModel("Sphere", 60000, initPos);
+    sphere->Scale(glm::vec3(0.1, 0.1, 0.1));
     
     sceneObjects.push_back(new TESLA::Model(*sphere));
 
     TESLA::EventListener::Subscribe({[](TESLA::Event* event)
     {
         auto castedEvent = dynamic_cast<TESLA::KeyboardButtonEvent*>(event);
-        if(castedEvent->GetKeycode() == GLFW_KEY_O)
-        {
-            rotate = !rotate;
-        }
-        else if(castedEvent->GetKeycode() == GLFW_KEY_SPACE)
-        {
-            orthographic = !orthographic;
-        }
-        else if(castedEvent->GetKeycode() == GLFW_KEY_M)
+        if(castedEvent->GetKeycode() == GLFW_KEY_M)
         {
             TESLA::ExitApplication();
-        }
-        else if(castedEvent->GetKeycode() == GLFW_KEY_P)
-        {
-            trace = !trace;
         }
     },TESLA::EventType::ButtonPressed, TESLA::EventCategory::Keyboard
     });
@@ -76,8 +64,13 @@ void Render()
 {
     for (TESLA::Model* model : sceneObjects)
     {
-        model->SetLightColour(glm::vec3(1.0f, 1.0f, 1.0f));
+        model->UpdateInstancePositions(modelMatrices);
         model->Draw(Camera::cameraPosition, lightPosition);
+    }
+
+    for(int i = 0; i < modelMatrices.size(); i++)
+    {
+        modelMatrices[i] = glm::translate(modelMatrices[i], glm::vec3(0, -1, 0));
     }
         
     glm::mat4 newView = Camera::CalculateView();

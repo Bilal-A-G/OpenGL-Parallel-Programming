@@ -4,6 +4,8 @@
 
 void TESLA::GLADWrapper::OpenGLRender()
 {
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
     glClearColor(0.1f, 0.1f, 0.1f, 0.0f);
