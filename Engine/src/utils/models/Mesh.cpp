@@ -18,7 +18,7 @@ namespace TESLA
         glBindVertexArray(vao);
 
         glBindBuffer(GL_ARRAY_BUFFER, m_positionsBuffer);
-        glBufferData(GL_ARRAY_BUFFER, m_instancedModels.size() * sizeof(glm::mat4), m_instancedModels.data(), GL_DYNAMIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, m_instancedPositions.size() * sizeof(glm::vec4), m_instancedPositions.data(), GL_DYNAMIC_DRAW);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
@@ -33,23 +33,13 @@ namespace TESLA
 
         glBindBuffer(GL_ARRAY_BUFFER, m_positionsBuffer);
         
-        glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), nullptr);
-        glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), reinterpret_cast<void*>(sizeof(glm::vec4)));
-        glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), reinterpret_cast<void*>(sizeof(glm::vec4) * 2));
-        glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), reinterpret_cast<void*>(sizeof(glm::vec4) * 3));
-            
+        glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(glm::vec4), nullptr);
         glVertexAttribDivisor(3, 1);
-        glVertexAttribDivisor(4, 1);
-        glVertexAttribDivisor(5, 1);
-        glVertexAttribDivisor(6, 1);
 
         glEnableVertexAttribArray(0);
         glEnableVertexAttribArray(1);
         glEnableVertexAttribArray(2);
         glEnableVertexAttribArray(3);
-        glEnableVertexAttribArray(4);
-        glEnableVertexAttribArray(5);
-        glEnableVertexAttribArray(6);
 
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         
@@ -58,7 +48,6 @@ namespace TESLA
         m_vao = vao;
         glBindVertexArray(0);
 
-        m_modelLocation = glGetUniformLocation(m_shaderProgram, "model");
         m_viewLocation = glGetUniformLocation(m_shaderProgram, "view");
         m_colourLocation = glGetUniformLocation(m_shaderProgram, "colour");
         m_lightColourLocation = glGetUniformLocation(m_shaderProgram, "lightColour");
@@ -110,7 +99,6 @@ namespace TESLA
     
     void Mesh::UpdateMVPMatrix(glm::vec3 cameraPos, glm::vec3 lightPos)
     {
-        glUniformMatrix4fv(m_modelLocation, 1, GL_FALSE, &(m_positionMatrix * m_scaleMatrix * m_rotationMatrix)[0][0]);
         glUniformMatrix4fv(m_viewLocation, 1, GL_FALSE, &m_viewMatrix[0][0]);
 
         glUniformMatrix4fv(m_projectionLocation, 1, GL_FALSE, &m_projectionMatrix[0][0]);
@@ -121,10 +109,10 @@ namespace TESLA
         // glUniform3f(m_lightColourLocation, m_lightColour.x, m_lightColour.y, m_lightColour.z);
     }
 
-    void Mesh::UpdateInstancePositions(std::vector<glm::mat4> newModels)
+    void Mesh::UpdateInstancePositions(std::vector<glm::vec4> newPositions)
     {
         glBindBuffer(GL_ARRAY_BUFFER, m_positionsBuffer);
-        glBufferData(GL_ARRAY_BUFFER, m_instancedModels.size() * sizeof(glm::mat4), newModels.data(), GL_DYNAMIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, m_instancedPositions.size() * sizeof(glm::vec4), newPositions.data(), GL_DYNAMIC_DRAW);
     }
 }
 

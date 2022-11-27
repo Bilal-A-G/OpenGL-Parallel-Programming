@@ -24,6 +24,8 @@ std::string TESLA::Texture::GetStringType()
     {
     case TESLA::TextureType::Albedo:
         return "albedo";
+    case TESLA::TextureType::Compute:
+        return "compute";
     default:
         return "";
     }
@@ -46,33 +48,61 @@ TESLA::Texture::Texture(TESLA::TextureType type, TESLA::TextureExtension extensi
         path = resourcePath + texturesDirectory + fileName + GetStringExtension();
     }
 
-    int width, height, numChannels;
-    unsigned char* data = stbi_load(path.data(), &width, &height, &numChannels, 0);
-
-#ifdef TS_DEBUG
-    if(!data)
+    if(type != TESLA::TextureType::Compute)
     {
-        TS_LOG_MESSAGE(TESLA_LOGGER::ERR, "Failed to load texture at path {0}", path);
+        int width, height, numChannels;
+        unsigned char* data = stbi_load(path.data(), &width, &height, &numChannels, 0);
+
+        #ifdef TS_DEBUG
+                if(!data)
+                {
+                    TS_LOG_MESSAGE(TESLA_LOGGER::ERR, "Failed to load texture at path {0}", path);
+                }
+                else
+                {
+                    TS_LOG_MESSAGE(TESLA_LOGGER::INFO, "Successfully loaded texture at path {0}", path);
+                }
+        #endif
+
+        glGenTextures(1, &m_texture);
+        glBindTexture(GL_TEXTURE_2D, m_texture);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    
+        GLint format = m_extension == TextureExtension::Jpg ? GL_RGB : GL_RGBA;
+    
+        glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+
+        stbi_image_free(data);
     }
     else
     {
-        TS_LOG_MESSAGE(TESLA_LOGGER::INFO, "Successfully loaded texture at path {0}", path);
+        TS_LOG_ASSERTION(true, TESLA_LOGGER::ERR, "Error, compute shaders cannot be loaded through this constructor");
     }
-#endif
-
-    glGenTextures(1, &m_texture);
-    glBindTexture(GL_TEXTURE_2D, m_texture);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    
-    GLint format = m_extension == TextureExtension::Jpg ? GL_RGB : GL_RGBA;
-    
-    glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
-    glGenerateMipmap(GL_TEXTURE_2D);
-
-    stbi_image_free(data);
 }
+
+TESLA::Texture::Texture(TESLA::TextureType type, int width, int height)
+{
+    m_type = type;
+
+    if(type != TESLA::TextureType::Compute)
+    {
+        TS_LOG_ASSERTION(true, TESLA_LOGGER::ERR, "Error, only compute shaders can be loaded through this constructor");
+    }
+    
+    glGenTextures(1, &m_texture);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, m_texture);
+        
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_FLOAT, nullptr);
+    glBindImageTexture(0, m_texture, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
+}
+
 
 

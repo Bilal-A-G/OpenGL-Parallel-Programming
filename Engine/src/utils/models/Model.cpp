@@ -81,7 +81,7 @@ namespace TESLA
                 indices.push_back(face.mIndices[j]);
         }
 
-        return Mesh(vertices, indices, m_shaderProgram, m_viewMatrix, m_projectionMatrix, glm::vec3(1, 1, 1), m_texture, m_instanceCount, m_instancedModels);
+        return Mesh(vertices, indices, m_shaderProgram, m_viewMatrix, m_projectionMatrix, glm::vec3(1, 1, 1), m_texture, m_instanceCount, m_instancedPositions);
     }
 
     void Model::Scale(glm::vec3 scale)
@@ -135,11 +135,11 @@ namespace TESLA
         }
     }
 
-    void Model::UpdateInstancePositions(std::vector<glm::mat4> newModels)
+    void Model::UpdateInstancePositions(std::vector<glm::vec4> newPositions)
     {
         for(int i = 0; i < m_meshes.size(); i++)
         {
-            m_meshes[i].UpdateInstancePositions(newModels);
+            m_meshes[i].UpdateInstancePositions(newPositions);
         }
     }
 

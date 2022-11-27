@@ -12,9 +12,9 @@ float farPlane = 200.0f;
 
 glm::mat4 projection = glm::perspective(glm::radians(70.0f), static_cast<float>(windowWidth)/static_cast<float>(windowHeight), nearPlane, farPlane);
 glm::mat4 view = glm::lookAt(glm::vec3(0.0f, 0.0f, 0.6f), glm::vec3(0), glm::vec3(0, 1, 0));
-std::vector<glm::mat4> modelMatrices;
+std::vector<glm::vec4> instancePositions;
 
-TESLA::Model* ImportModel(const char* fileName, int instanceCount, glm::mat4 initPos)
+TESLA::Model* ImportModel(const char* fileName, int instanceCount)
 {
     TESLA::Shader vertexShader(TESLA::ShaderType::Vertex);
     TESLA::Shader fragmentShader(TESLA::ShaderType::Fragment);
@@ -24,31 +24,31 @@ TESLA::Model* ImportModel(const char* fileName, int instanceCount, glm::mat4 ini
     uint32_t shaderProgram = TESLA::Shader::CompileProgram({vertexShader, fragmentShader});
     for(int i = 0; i < instanceCount; i++)
     {
-        modelMatrices.push_back(glm::translate(initPos, glm::vec3(rand() % 100 - 1, rand() % 100 - 1, rand() % 100 - 1)));
+        instancePositions.push_back(glm::vec4(rand() % 100 - 1, rand() % 100 - 1, rand() % 100 - 1, 0));
     }
 
-    return new TESLA::Model{fileName, shaderProgram, albedo.GetGLTexture(), view, projection, instanceCount, modelMatrices};
+    return new TESLA::Model{fileName, shaderProgram, albedo.GetGLTexture(), view, projection, instanceCount, instancePositions};
 }
 
-std::vector<TESLA::Model*> sceneObjects;
-bool rotate;
-bool orthographic;
-bool trace;
+TESLA::Model* particleInstance;
+
+int workGroupWidth = 10;
+int workGroupHeight = 10;
 
 void Init()
 {
     TESLA::Application::Start(windowWidth, windowHeight, "PBF Demo");
     
-    glm::mat4 initPos = glm::translate(glm::mat4(1), glm::vec3(0, -50, 100));
-    TESLA::Model* sphere = ImportModel("Sphere", 60000, initPos);
+    TESLA::Model* sphere = ImportModel("Sphere", 60000);
     sphere->Scale(glm::vec3(0.1, 0.1, 0.1));
 
-    TESLA::Shader computeShader(TESLA::ShaderType::Compute);
+    TESLA::Shader computeShader(TESLA::ShaderType::Compute, "compute");
+    TESLA::Texture computeBuffer(TESLA::TextureType::Compute, workGroupWidth, workGroupHeight);
     uint32_t computeShaderProgram = TESLA::Shader::CompileProgram({computeShader});
     
-    TESLA::Physics::Init(computeShaderProgram);
+    TESLA::Physics::Init(computeShaderProgram, computeBuffer, workGroupWidth, workGroupHeight, glm::vec4(0, -50, 100, 0));
     
-    sceneObjects.push_back(new TESLA::Model(*sphere));
+    particleInstance = new TESLA::Model(*sphere);
 
     TESLA::EventListener::Subscribe({[](TESLA::Event* event)
     {
@@ -72,18 +72,12 @@ double timeLastFrame;
 void Render()
 {
     double timeThisFrame = glfwGetTime();
-    for (TESLA::Model* model : sceneObjects)
-    {
-        model->UpdateInstancePositions(modelMatrices);
-        model->Draw(Camera::cameraPosition, lightPosition);
-    }
 
-    TESLA::Physics::ComputePhysics(10, 10, 1);
+    particleInstance->UpdateInstancePositions(instancePositions);
+    particleInstance->Draw(Camera::cameraPosition, lightPosition);
 
-    // for(int i = 0; i < modelMatrices.size(); i++)
-    // {
-    //     modelMatrices[i] = glm::translate(modelMatrices[i], glm::vec3(0, -1, 0));
-    // }
+    TESLA::Physics::ComputePhysics();
+    instancePositions = TESLA::Physics::GetPositionData();
         
     glm::mat4 newView = Camera::CalculateView();
     if(newView != glm::mat4(1))
@@ -98,5 +92,5 @@ void Render()
 void CleanUp()
 {
     TS_LOG_MESSAGE(TESLA_LOGGER::DEBUG, "Application ended");
-    sceneObjects.clear();
+    delete(particleInstance);
 }

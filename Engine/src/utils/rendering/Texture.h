@@ -5,6 +5,7 @@ namespace TESLA
     enum TextureType
     {
         Albedo,
+        Compute
     };
 
     enum TextureExtension
@@ -17,6 +18,8 @@ namespace TESLA
     {
     public:
         Texture(TESLA::TextureType type, TESLA::TextureExtension extension, std::string fileName = "");
+        Texture(TESLA::TextureType type, int width, int height);
+        Texture(){}
         uint32_t GetGLTexture(){return m_texture;}
     private:
         std::string GetStringExtension();

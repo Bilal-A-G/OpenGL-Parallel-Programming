@@ -18,7 +18,7 @@ namespace TESLA
     class Mesh
     {
     public:
-        Mesh(const std::vector<Vertex> &vertices, const std::vector<unsigned int> &indices, const uint32_t& shaderProgram, glm::mat4& viewMatrix, glm::mat4& projectionMatrix, glm::vec3 colour, uint32_t texture, int instanceCount, std::vector<glm::mat4> instancedModels)
+        Mesh(const std::vector<Vertex> &vertices, const std::vector<unsigned int> &indices, const uint32_t& shaderProgram, glm::mat4& viewMatrix, glm::mat4& projectionMatrix, glm::vec3 colour, uint32_t texture, int instanceCount, std::vector<glm::vec4> instancedPositions)
             : m_viewMatrix(viewMatrix), m_projectionMatrix(projectionMatrix), m_instanceCount(instanceCount)
         {
             m_vertices = vertices;
@@ -26,7 +26,7 @@ namespace TESLA
             m_shaderProgram = shaderProgram;
             m_colour = colour;
             m_texture = texture;
-            m_instancedModels = instancedModels;
+            m_instancedPositions = instancedPositions;
             this->SetupGLObjects();
         }
 
@@ -45,7 +45,7 @@ namespace TESLA
         void SetColour(glm::vec3 colour){m_colour = colour;}
         void SetLightColour(glm::vec3 colour){m_lightColour = colour;}
         void SetTexture(TESLA::Texture texture){m_texture = texture.GetGLTexture();}
-        void UpdateInstancePositions(std::vector<glm::mat4> newModels);
+        void UpdateInstancePositions(std::vector<glm::vec4> newPositions);
         
         uint32_t GetShaderProgram(){return m_shaderProgram;}
     public:
@@ -55,7 +55,7 @@ namespace TESLA
         void UpdateMVPMatrix(glm::vec3 cameraPos, glm::vec3 lightPos);
     
         std::vector<Vertex> m_vertices;
-        std::vector<glm::mat4> m_instancedModels;
+        std::vector<glm::vec4> m_instancedPositions;
         std::vector<unsigned int> m_indices;
         uint32_t m_shaderProgram;
         uint32_t m_texture;

@@ -37,7 +37,7 @@ GLenum GetGLType(TESLA::ShaderType type)
 TESLA::Shader::Shader(TESLA::ShaderType type, std::string fileName)
 {
     m_type = type;
-    std::string path;
+    std::string path = fileName;
     
     if(path == "")
     {
