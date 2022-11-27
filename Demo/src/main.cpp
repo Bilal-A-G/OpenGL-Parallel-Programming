@@ -32,21 +32,21 @@ TESLA::Model* ImportModel(const char* fileName, int instanceCount)
 
 TESLA::Model* particleInstance;
 
-int workGroupWidth = 10;
-int workGroupHeight = 10;
+int workGroupWidth = 320;
+int workGroupHeight = 320;
 
 void Init()
 {
     TESLA::Application::Start(windowWidth, windowHeight, "PBF Demo");
     
-    TESLA::Model* sphere = ImportModel("Sphere", 60000);
+    TESLA::Model* sphere = ImportModel("Sphere", 102400);
     sphere->Scale(glm::vec3(0.1, 0.1, 0.1));
 
     TESLA::Shader computeShader(TESLA::ShaderType::Compute, "compute");
     TESLA::Texture computeBuffer(TESLA::TextureType::Compute, workGroupWidth, workGroupHeight);
     uint32_t computeShaderProgram = TESLA::Shader::CompileProgram({computeShader});
     
-    TESLA::Physics::Init(computeShaderProgram, computeBuffer, workGroupWidth, workGroupHeight, glm::vec4(0, -50, 100, 0));
+    TESLA::Physics::Init(computeShaderProgram, computeBuffer, workGroupWidth, workGroupHeight, instancePositions);
     
     particleInstance = new TESLA::Model(*sphere);
 
@@ -85,7 +85,7 @@ void Render()
         view = newView;
     }
 
-    TS_LOG_MESSAGE(TESLA_LOGGER::TRACE, "Time between frames(ms): {0}", (timeThisFrame - timeLastFrame) * 1000);
+    TS_LOG_MESSAGE(TESLA_LOGGER::TRACE, "Current FPS: {0}", 1/(timeThisFrame - timeLastFrame));
     timeLastFrame = timeThisFrame;
 }
 

@@ -7,7 +7,7 @@ namespace TESLA
     class Physics
     {
     public:
-        static void Init(uint32_t computeProgram, TESLA::Texture computeBuffer, int width, int height, glm::vec4 initPosition);
+        static void Init(uint32_t computeProgram, TESLA::Texture computeBuffer, int width, int height, std::vector<glm::vec4> instancePositions);
         static void ComputePhysics();
         static std::vector<glm::vec4> GetPositionData();
     private:

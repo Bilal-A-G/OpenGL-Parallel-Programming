@@ -4,10 +4,10 @@ layout(rgba32f, binding = 0) uniform image2D m_buffer;
 
 void main()
 {
-    ivec2 pos = ivec2( gl_GlobalInvocationID.xy );
+    vec2 pos = vec2(gl_GlobalInvocationID.xy);
     float x = imageLoad(m_buffer, pos).r;
     float y = imageLoad(m_buffer, pos).g;
     float z = imageLoad(m_buffer, pos).b;
     
-    imageStore(m_buffer, pos, vec4(x, y, z, 0.0));
+    imageStore(m_buffer, pos, vec4(0, 0, 0, 0.0));
 }
