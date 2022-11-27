@@ -17,19 +17,19 @@ float shinyness = 2.0f;
 
 void main()
 {
-    vec3 normalizedNormal = normalize(outNormal);
-    vec3 ambientLight = lightColour * ambientStrength;
+    //vec3 normalizedNormal = normalize(outNormal);
+    //vec3 ambientLight = lightColour * ambientStrength;
     
-    vec3 lightDirection = normalize(lightPosition - outPosition);
-    float incidentAngle = max(dot(normalizedNormal, lightDirection), 0.0f);
-    vec3 diffuseLight = incidentAngle * lightColour;
+    //vec3 lightDirection = normalize(lightPosition - outPosition);
+    //float incidentAngle = max(dot(normalizedNormal, lightDirection), 0.0f);
+    //vec3 diffuseLight = incidentAngle * lightColour;
     
-    vec3 viewDir = viewerPosition - outPosition;
-    vec3 reflectDir = reflect(-lightDirection, normalizedNormal);
+    //vec3 viewDir = viewerPosition - outPosition;
+    //vec3 reflectDir = reflect(-lightDirection, normalizedNormal);
     
-    float specular = pow(max(dot(viewDir, reflectDir), 0.0f), shinyness);
-    vec3 specularLight = specularStrength * specular * lightColour;
+    //float specular = pow(max(dot(viewDir, reflectDir), 0.0f), shinyness);
+    //vec3 specularLight = specularStrength * specular * lightColour;
   
-    vec3 totalLight = (ambientLight + diffuseLight + specularLight) * vec3(texture(albedoMap, outUv));
-    frag_colour = vec4(totalLight, 0.0f);
+    //vec3 totalLight = (ambientLight + diffuseLight + specularLight) * vec3(texture(albedoMap, outUv));
+    frag_colour = vec4(vec3(0.1, 0.2, 0.4), 0.0f);
 }

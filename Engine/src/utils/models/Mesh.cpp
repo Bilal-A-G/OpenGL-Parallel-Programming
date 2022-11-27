@@ -11,12 +11,17 @@ void Mesh::SetupGLObjects()
     GLuint vao;
     GLuint vbo;
     GLuint ebo;
+    GLuint instancedPositions;
 
     glGenVertexArrays(1, &vao);
     glGenBuffers(1, &vbo);
     glGenBuffers(1, &ebo);
+    glGenBuffers(1, &instancedPositions);
 
     glBindVertexArray(vao);
+
+    glBindBuffer(GL_ARRAY_BUFFER, instancedPositions);
+    glBufferData(GL_ARRAY_BUFFER, m_instancedModels.size() * sizeof(glm::mat4), m_instancedModels.data(), GL_STATIC_DRAW);
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * m_vertices.size(), m_vertices.data(), GL_STATIC_DRAW);
@@ -28,9 +33,28 @@ void Mesh::SetupGLObjects()
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(sizeof(float) * 3));
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(sizeof(float) * 6));
 
+    if(m_instanceCount > 1)
+    {
+        glBindBuffer(GL_ARRAY_BUFFER, instancedPositions);
+        
+        glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), nullptr);
+        glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), reinterpret_cast<void*>(sizeof(glm::vec4)));
+        glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), reinterpret_cast<void*>(sizeof(glm::vec4) * 2));
+        glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), reinterpret_cast<void*>(sizeof(glm::vec4) * 3));
+        
+        glVertexAttribDivisor(3, 1);
+        glVertexAttribDivisor(4, 1);
+        glVertexAttribDivisor(5, 1);
+        glVertexAttribDivisor(6, 1);
+    }
+
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
     glEnableVertexAttribArray(2);
+    glEnableVertexAttribArray(3);
+    glEnableVertexAttribArray(4);
+    glEnableVertexAttribArray(5);
+    glEnableVertexAttribArray(6);
     
     TS_LOG_MESSAGE(TESLA_LOGGER::INFO, "Sent to buffer: vertices = {0}, indices = {1}", m_vertices.size(), m_indices.size());
     
@@ -41,14 +65,18 @@ void Mesh::SetupGLObjects()
 void Mesh::Draw(glm::vec3 cameraPos, glm::vec3 lightPos)
 {
     glUseProgram(m_shaderProgram);
-    glBindTexture(GL_TEXTURE_2D, m_texture);
     
     UpdateMVPMatrix(cameraPos, lightPos);
     
     glBindVertexArray(m_vao);
-    glDrawElements(GL_TRIANGLES, m_indices.size(), GL_UNSIGNED_INT, nullptr);
-    glBindVertexArray(0);
-    glBindTexture(GL_TEXTURE_2D, 0);
+    if(m_instanceCount == 1)
+    {
+        glDrawElements(GL_TRIANGLES, m_indices.size(), GL_UNSIGNED_INT, nullptr);
+    }
+    else if(m_instanceCount > 1)
+    {
+        glDrawElementsInstanced(GL_TRIANGLES, m_indices.size(), GL_UNSIGNED_INT, nullptr, m_instanceCount);
+    }
 }
 
 //Wrapper functions around various glm transform functions. Just provides better syntax for now, but in the future will contain more functionality 

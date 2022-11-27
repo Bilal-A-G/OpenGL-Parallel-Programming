@@ -81,7 +81,7 @@ Mesh Model::ProcessMesh(aiMesh* mesh, const aiScene* scene)
             indices.push_back(face.mIndices[j]);
     }
 
-    return Mesh(vertices, indices, m_shaderProgram, m_viewMatrix, m_projectionMatrix, glm::vec3(1, 1, 1), m_texture);
+    return Mesh(vertices, indices, m_shaderProgram, m_viewMatrix, m_projectionMatrix, glm::vec3(1, 1, 1), m_texture, m_instanceCount, m_instancedModels);
 }
 
 void Model::Scale(glm::vec3 scale)
