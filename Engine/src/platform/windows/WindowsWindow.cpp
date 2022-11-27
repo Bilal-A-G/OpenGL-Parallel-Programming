@@ -36,7 +36,6 @@ TESLA::WindowsWindow::WindowsWindow(const WindowProperties& properties)
     
     GLFWwindow* window = glfwCreateWindow(properties.width, properties.height, properties.name.data(), nullptr, nullptr);
     glfwMakeContextCurrent(window);
-
     TS_LOG_ASSERTION((window != nullptr), TESLA_LOGGER::ERR, "Failed to create window");
     TS_LOG_MESSAGE(TESLA_LOGGER::INFO, "Successfully created window, width = {0}, height = {1}, name = {2}", properties.width, properties.height, properties.name);
 
@@ -50,7 +49,7 @@ TESLA::WindowsWindow::WindowsWindow(const WindowProperties& properties)
     TESLA::GLADWrapper::UpdateViewport(properties.width, properties.height);
     glfwSetFramebufferSizeCallback(m_data->window, ResizeWindow);
 
-    WindowsWindow::SetVSync(true);
+    WindowsWindow::SetVSync(false);
     
     glfwSetWindowCloseCallback(window, [](GLFWwindow* _window){EventListener::Invoke(new WindowClosedEvent());    });
     glfwSetMouseButtonCallback(window, [](GLFWwindow* window, int button, int action, int mods){EventListener::Invoke(new MouseButtonEvent(button, action == GLFW_PRESS, action == GLFW_REPEAT)); });

@@ -68,16 +68,11 @@ namespace TESLA
         m_lightLocation = glGetUniformLocation(m_shaderProgram, "lightPosition");
     }
     
-    GLuint prevShaderProgram;
     GLuint prevVAO;
 
     void Mesh::Draw(glm::vec3 cameraPos, glm::vec3 lightPos)
     {
-        if(prevShaderProgram == 0)
-        {
-            glUseProgram(m_shaderProgram);
-            prevShaderProgram = m_shaderProgram;
-        }
+        glUseProgram(m_shaderProgram);
         
         UpdateMVPMatrix(cameraPos, lightPos);
 

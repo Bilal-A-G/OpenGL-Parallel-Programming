@@ -2,6 +2,7 @@
 #include "Camera.h"
 #include "utils/events/KeyEvents.h"
 #include "GLFW/glfw3.h"
+#include "utils/physics/Physics.h"
 
 int windowHeight = 800;
 int windowWidth = 1200;
@@ -17,6 +18,7 @@ TESLA::Model* ImportModel(const char* fileName, int instanceCount, glm::mat4 ini
 {
     TESLA::Shader vertexShader(TESLA::ShaderType::Vertex);
     TESLA::Shader fragmentShader(TESLA::ShaderType::Fragment);
+    
     TESLA::Texture albedo(TESLA::TextureType::Albedo, TESLA::TextureExtension::Jpg);
 
     uint32_t shaderProgram = TESLA::Shader::CompileProgram({vertexShader, fragmentShader});
@@ -36,10 +38,15 @@ bool trace;
 void Init()
 {
     TESLA::Application::Start(windowWidth, windowHeight, "PBF Demo");
-
+    
     glm::mat4 initPos = glm::translate(glm::mat4(1), glm::vec3(0, -50, 100));
     TESLA::Model* sphere = ImportModel("Sphere", 60000, initPos);
     sphere->Scale(glm::vec3(0.1, 0.1, 0.1));
+
+    TESLA::Shader computeShader(TESLA::ShaderType::Compute);
+    uint32_t computeShaderProgram = TESLA::Shader::CompileProgram({computeShader});
+    
+    TESLA::Physics::Init(computeShaderProgram);
     
     sceneObjects.push_back(new TESLA::Model(*sphere));
 
@@ -60,24 +67,32 @@ float angle;
 float moveTime;
 glm::vec3 lightPosition = glm::vec3(-1, 5, 0);
 
+double timeLastFrame;
+
 void Render()
 {
+    double timeThisFrame = glfwGetTime();
     for (TESLA::Model* model : sceneObjects)
     {
         model->UpdateInstancePositions(modelMatrices);
         model->Draw(Camera::cameraPosition, lightPosition);
     }
 
-    for(int i = 0; i < modelMatrices.size(); i++)
-    {
-        modelMatrices[i] = glm::translate(modelMatrices[i], glm::vec3(0, -1, 0));
-    }
+    TESLA::Physics::ComputePhysics(10, 10, 1);
+
+    // for(int i = 0; i < modelMatrices.size(); i++)
+    // {
+    //     modelMatrices[i] = glm::translate(modelMatrices[i], glm::vec3(0, -1, 0));
+    // }
         
     glm::mat4 newView = Camera::CalculateView();
     if(newView != glm::mat4(1))
     {
         view = newView;
     }
+
+    TS_LOG_MESSAGE(TESLA_LOGGER::TRACE, "Time between frames(ms): {0}", (timeThisFrame - timeLastFrame) * 1000);
+    timeLastFrame = timeThisFrame;
 }
 
 void CleanUp()

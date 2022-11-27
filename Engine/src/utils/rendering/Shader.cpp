@@ -11,6 +11,8 @@ std::string TESLA::Shader::GetStringType()
         return "fragment";
     case TESLA::ShaderType::Vertex:
         return "vertex";
+    case TESLA::ShaderType::Compute:
+        return "compute";
     default:
         TS_LOG_MESSAGE(TESLA_LOGGER::ERR, "Error, attempt to compile unknown shader");
         return "";
@@ -25,6 +27,8 @@ GLenum GetGLType(TESLA::ShaderType type)
         return GL_FRAGMENT_SHADER;
     case TESLA::ShaderType::Vertex:
         return GL_VERTEX_SHADER;
+    case TESLA::ShaderType::Compute:
+        return GL_COMPUTE_SHADER;
     default:
         return NULL;
     }
@@ -81,11 +85,11 @@ uint32_t TESLA::Shader::CompileShader(std::string& filePath)
     {
         char infoLog[512];
         glGetShaderInfoLog(shader, 512, nullptr, infoLog);
-        TS_LOG_MESSAGE(TESLA_LOGGER::ERR, "Failed to compile {0}: {1}", GetStringType(), infoLog);
+        TS_LOG_MESSAGE(TESLA_LOGGER::ERR, "Failed to compile {0} shader: {1}", GetStringType(), infoLog);
     }
     else
     {
-        TS_LOG_MESSAGE(TESLA_LOGGER::INFO, "Compiled {0} successfully", GetStringType());
+        TS_LOG_MESSAGE(TESLA_LOGGER::INFO, "Compiled {0} shader successfully", GetStringType());
     }
 #endif
     return shader;

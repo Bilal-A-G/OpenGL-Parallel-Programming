@@ -4,7 +4,8 @@ namespace TESLA
     enum class ShaderType
     {
         Fragment,
-        Vertex
+        Vertex,
+        Compute
     };
     
     class Shader
