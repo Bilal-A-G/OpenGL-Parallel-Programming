@@ -7,9 +7,15 @@ uint32_t TESLA::Physics::m_computeProgram;
 TESLA::Texture TESLA::Physics::m_computeBuffer;
 int TESLA::Physics::m_workHeight;
 int TESLA::Physics::m_workWidth;
+
+int TESLA::Physics::m_subSteps = 10;
+float TESLA::Physics::m_deltaTime = 1.0f/60.0f;
+
 uint32_t ssbox;
 uint32_t ssboy;
 uint32_t ssboz;
+uint32_t ssbovel;
+uint32_t ssboprvpos;
 
 void TESLA::Physics::Init(uint32_t computeProgram, TESLA::Texture computeBuffer, int width, int height, std::vector<glm::vec4> instancedPositions)
 {
@@ -22,6 +28,8 @@ void TESLA::Physics::Init(uint32_t computeProgram, TESLA::Texture computeBuffer,
     glGenBuffers(1, &ssbox);
     glGenBuffers(1, &ssboy);
     glGenBuffers(1, &ssboz);
+    glGenBuffers(1, &ssbovel);
+    glGenBuffers(1, &ssboprvpos);
 
     std::vector<float> xPositions(instancedPositions.size());
     std::vector<float> yPositions(instancedPositions.size());
@@ -33,6 +41,12 @@ void TESLA::Physics::Init(uint32_t computeProgram, TESLA::Texture computeBuffer,
         yPositions[i] = instancedPositions[i].y;
         zPositions[i] = instancedPositions[i].z;
     }
+
+    std::vector<glm::vec4> initialVelocities(instancedPositions.size());
+
+    float scaledDeltaTime = m_deltaTime/m_subSteps;
+    GLuint deltaTimeLocation = glGetUniformLocation(m_computeProgram, "deltaTime");
+    glUniform1fv(deltaTimeLocation, 1, &scaledDeltaTime);
     
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssbox);
     glBufferData(GL_SHADER_STORAGE_BUFFER, xPositions.size() * sizeof(float), xPositions.data(), GL_DYNAMIC_DRAW);
@@ -42,6 +56,12 @@ void TESLA::Physics::Init(uint32_t computeProgram, TESLA::Texture computeBuffer,
     
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, ssboz);
     glBufferData(GL_SHADER_STORAGE_BUFFER, zPositions.size() * sizeof(float), zPositions.data(), GL_DYNAMIC_DRAW);
+
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, ssbovel);
+    glBufferData(GL_SHADER_STORAGE_BUFFER, initialVelocities.size() * sizeof(glm::vec4), initialVelocities.data(), GL_DYNAMIC_DRAW);
+
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, ssboprvpos);
+    glBufferData(GL_SHADER_STORAGE_BUFFER, initialVelocities.size() * sizeof(glm::vec4), initialVelocities.data(), GL_DYNAMIC_DRAW);
 }
 
 std::vector<glm::vec4> TESLA::Physics::GetPositionData()
@@ -80,8 +100,11 @@ std::vector<glm::vec4> TESLA::Physics::GetPositionData()
 
 void TESLA::Physics::ComputePhysics()
 {
-    glUseProgram(m_computeProgram);
-    glDispatchCompute(m_workWidth * m_workHeight, 1, 1);
+    for(int  i = 0; i < m_subSteps; i++)
+    {
+        glUseProgram(m_computeProgram);
+        glDispatchCompute(m_workWidth * m_workHeight, 1, 1);
+    }
 }
 
 

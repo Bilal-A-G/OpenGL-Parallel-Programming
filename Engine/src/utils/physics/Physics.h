@@ -15,6 +15,9 @@ namespace TESLA
         static TESLA::Texture m_computeBuffer;
         static int m_workHeight;
         static int m_workWidth;
+        
+        static int m_subSteps;
+        static float m_deltaTime;
     };    
 }
 
