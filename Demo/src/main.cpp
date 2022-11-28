@@ -38,6 +38,8 @@ int workGroupHeight = 320;
 void Init()
 {
     TESLA::Application::Start(windowWidth, windowHeight, "PBF Demo");
+
+    TS_LOG_MESSAGE(TESLA_LOGGER::INFO, "OpenGL Renderer {0}", glGetString(GL_RENDERER));
     
     TESLA::Model* sphere = ImportModel("Sphere", 102400);
     sphere->Scale(glm::vec3(0.1, 0.1, 0.1));

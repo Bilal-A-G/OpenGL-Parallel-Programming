@@ -36,6 +36,9 @@ TESLA::WindowsWindow::WindowsWindow(const WindowProperties& properties)
     
     GLFWwindow* window = glfwCreateWindow(properties.width, properties.height, properties.name.data(), nullptr, nullptr);
     glfwMakeContextCurrent(window);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     TS_LOG_ASSERTION((window != nullptr), TESLA_LOGGER::ERR, "Failed to create window");
     TS_LOG_MESSAGE(TESLA_LOGGER::INFO, "Successfully created window, width = {0}, height = {1}, name = {2}", properties.width, properties.height, properties.name);
 
