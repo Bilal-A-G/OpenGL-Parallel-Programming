@@ -109,7 +109,7 @@ namespace TESLA
         // glUniform3f(m_lightColourLocation, m_lightColour.x, m_lightColour.y, m_lightColour.z);
     }
 
-    void Mesh::UpdateInstancePositions(std::vector<glm::vec4> newPositions)
+    void Mesh::UpdateInstancePositions(std::vector<glm::vec4>& newPositions)
     {
         glBindBuffer(GL_ARRAY_BUFFER, m_positionsBuffer);
         glBufferData(GL_ARRAY_BUFFER, m_instancedPositions.size() * sizeof(glm::vec4), newPositions.data(), GL_DYNAMIC_DRAW);

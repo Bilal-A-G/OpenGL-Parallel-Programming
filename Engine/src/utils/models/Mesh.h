@@ -45,7 +45,7 @@ namespace TESLA
         void SetColour(glm::vec3 colour){m_colour = colour;}
         void SetLightColour(glm::vec3 colour){m_lightColour = colour;}
         void SetTexture(TESLA::Texture texture){m_texture = texture.GetGLTexture();}
-        void UpdateInstancePositions(std::vector<glm::vec4> newPositions);
+        void UpdateInstancePositions(std::vector<glm::vec4>& newPositions);
         
         uint32_t GetShaderProgram(){return m_shaderProgram;}
     public:

@@ -135,7 +135,7 @@ namespace TESLA
         }
     }
 
-    void Model::UpdateInstancePositions(std::vector<glm::vec4> newPositions)
+    void Model::UpdateInstancePositions(std::vector<glm::vec4>& newPositions)
     {
         for(int i = 0; i < m_meshes.size(); i++)
         {

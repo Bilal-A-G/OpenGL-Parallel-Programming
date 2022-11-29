@@ -36,7 +36,7 @@ namespace TESLA
         void SetColour(glm::vec3 colour);
         void SetLightColour(glm::vec3 colour);
         void SetTexture(TESLA::Texture texture);
-        void UpdateInstancePositions(std::vector<glm::vec4> newPositions);
+        void UpdateInstancePositions(std::vector<glm::vec4>& newPositions);
         glm::vec3 GetPosition(){return m_position;}
         const std::vector<Mesh>& GetMeshes(){return m_meshes;}
     

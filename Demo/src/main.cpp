@@ -32,8 +32,8 @@ TESLA::Model* ImportModel(const char* fileName, int instanceCount)
 
 TESLA::Model* particleInstance;
 
-int workGroupWidth = 320;
-int workGroupHeight = 320;
+int workGroupWidth = 256;
+int workGroupHeight = 256;
 
 void Init()
 {
@@ -41,7 +41,7 @@ void Init()
 
     TS_LOG_MESSAGE(TESLA_LOGGER::INFO, "OpenGL Renderer {0}", glGetString(GL_RENDERER));
     
-    TESLA::Model* sphere = ImportModel("Sphere", 102400);
+    TESLA::Model* sphere = ImportModel("Sphere", 65536);
     sphere->Scale(glm::vec3(0.1, 0.1, 0.1));
 
     TESLA::Shader computeShader(TESLA::ShaderType::Compute, "compute");
