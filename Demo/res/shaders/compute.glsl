@@ -20,7 +20,7 @@ uniform int tableSize;
 
 int GetHashCoords(float x, float y, float z)
 {
-    int h = int(x) * 928371 ^ int(y) * 689287 ^ int(z) * 283923;
+    int h = int(x) * 92837111 ^ int(y) * 689287499 ^ int(z) * 283923481;
     return abs(h) % tableSize;
 }
 
@@ -60,7 +60,7 @@ void Query(vec3 position, float maxDist, float pos)
 
 void main()
 {
-    float radius = 100;
+    float radius = 2;
     
     uint pos = gl_GlobalInvocationID.x;
     velocities[pos] = velocities[pos] + vec4(0, 0, 0, 0) * deltaTime;
