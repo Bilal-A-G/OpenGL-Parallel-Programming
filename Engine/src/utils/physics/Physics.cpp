@@ -3,7 +3,6 @@
 #include "glad/glad.h"
 
 uint32_t TESLA::Physics::m_computeProgram;
-TESLA::Texture TESLA::Physics::m_computeBuffer;
 int TESLA::Physics::m_workHeight;
 int TESLA::Physics::m_workWidth;
 
@@ -24,8 +23,7 @@ uint32_t ssboprvpos;
 uint32_t ssbocellentries;
 uint32_t ssbocellstart;
 uint32_t ssboqueryids;
-
-uint32_t ssbodebug;
+uint32_t ssbolambdas;
 
 int tableSize;
 float spacing = 3;
@@ -68,10 +66,9 @@ void Query(glm::vec4 position, float maxDist)
     }
 }
 
-void TESLA::Physics::Init(uint32_t computeProgram, TESLA::Texture computeBuffer, int width, int height, std::vector<glm::vec4> instancedPositions)
+void TESLA::Physics::Init(uint32_t computeProgram, int width, int height, std::vector<glm::vec4> instancedPositions)
 {
     m_computeProgram = computeProgram;
-    m_computeBuffer = computeBuffer;
     m_workHeight = height;
     m_workWidth = width;
     m_data = instancedPositions;
@@ -87,7 +84,7 @@ void TESLA::Physics::Init(uint32_t computeProgram, TESLA::Texture computeBuffer,
     glGenBuffers(1, &ssbocellentries);
     glGenBuffers(1, &ssbocellstart);
     glGenBuffers(1, &ssboqueryids);
-    glGenBuffers(1, &ssbodebug);
+    glGenBuffers(1, &ssbolambdas);
 
     std::vector<float> xPositions(instancedPositions.size());
     std::vector<float> yPositions(instancedPositions.size());
@@ -145,10 +142,9 @@ void TESLA::Physics::Init(uint32_t computeProgram, TESLA::Texture computeBuffer,
 
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 7, ssboqueryids);
     glBufferData(GL_SHADER_STORAGE_BUFFER, queryIDs.size() * sizeof(uint32_t), queryIDs.data(), GL_DYNAMIC_DRAW);
-
-    std::vector<float> dummyData(5);
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 8, ssbodebug);
-    glBufferData(GL_SHADER_STORAGE_BUFFER, dummyData.size() * sizeof(float), dummyData.data(), GL_DYNAMIC_DRAW);
+    
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 8, ssbolambdas);
+    glBufferData(GL_SHADER_STORAGE_BUFFER, initialVelocities.size() * sizeof(glm::vec4), initialVelocities.data(), GL_DYNAMIC_DRAW);
 }
 
 std::vector<glm::vec4>& TESLA::Physics::GetPositionData()
@@ -162,7 +158,6 @@ std::vector<glm::vec4>& TESLA::Physics::GetPositionData()
     GLfloat* ptrx;
     GLfloat* ptry;
     GLfloat* ptrz;
-    GLfloat* debug;
 
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbox);
     ptrx = reinterpret_cast<GLfloat*>(glMapBuffer(GL_SHADER_STORAGE_BUFFER, GL_READ_WRITE));
@@ -186,7 +181,7 @@ std::vector<glm::vec4>& TESLA::Physics::GetPositionData()
         cellStart[i] = cumSum;
     }
     cellStart[tableSize] = cumSum;
-
+    
     for(int i = 0; i < size; i++)
     {
         int index = GetHashCoords(GetTableCoords(ptrx[i], ptry[i], ptrz[i]));
@@ -209,9 +204,6 @@ std::vector<glm::vec4>& TESLA::Physics::GetPositionData()
     glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
     
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssboz);
-    glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
-
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbodebug);
     glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
 
     return m_data;

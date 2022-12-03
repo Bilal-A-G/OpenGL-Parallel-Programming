@@ -42,13 +42,11 @@ void Init()
     TS_LOG_MESSAGE(TESLA_LOGGER::INFO, "OpenGL Renderer {0}", glGetString(GL_RENDERER));
     
     TESLA::Model* sphere = ImportModel("Sphere", 65536);
-    sphere->Scale(glm::vec3(0.1, 0.1, 0.1));
 
-    TESLA::Shader computeShader(TESLA::ShaderType::Compute, "compute");
-    TESLA::Texture computeBuffer(TESLA::TextureType::Compute, workGroupWidth, workGroupHeight);
-    uint32_t computeShaderProgram = TESLA::Shader::CompileProgram({computeShader});
+    TESLA::Shader physicsShader(TESLA::ShaderType::Compute, "physics");
+    uint32_t physicsProgram = TESLA::Shader::CompileProgram({physicsShader});
     
-    TESLA::Physics::Init(computeShaderProgram, computeBuffer, workGroupWidth, workGroupHeight, instancePositions);
+    TESLA::Physics::Init(physicsProgram, workGroupWidth, workGroupHeight, instancePositions);
     
     particleInstance = new TESLA::Model(*sphere);
 

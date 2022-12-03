@@ -5,13 +5,12 @@ layout(std430, binding = 1) buffer positionsy {float yPositions[];};
 layout(std430, binding = 2) buffer positionsz {float zPositions[];};
 
 layout(std430, binding = 3) buffer vel {vec4 velocities[];};
-layout(std430, binding = 4) buffer prvpos {vec4 prevPositions[];};
+layout(std430, binding = 4) buffer prvpos {vec4 predictedPositions[];};
+layout(std430, binding = 8) buffer lambda {vec4 lambdas[];};
 
 layout(std430, binding = 5) buffer cellst {int cellStart[];};
 layout(std430, binding = 6) buffer cellen {int cellEntries[];};
 layout(std430, binding = 7) buffer qids {int queryIDs[];};
-
-layout(std430, binding = 8) buffer deb {float debug[];};
 
 uniform float deltaTime;
 uniform float spacing;
@@ -29,9 +28,11 @@ vec3 GetTableCoords(float x, float y, float z)
     return vec3(floor(x / spacing), floor(y / spacing), floor(z / spacing));
 }
 
+vec3 PolySix()
+
 int querySize = 0;
 
-void Query(vec3 position, float maxDist, float pos)
+void Query(vec4 position, float maxDist, float pos)
 {
     vec3 p0 = GetTableCoords(position.x - maxDist, position.y - maxDist, position.z - maxDist);
     vec3 p1 = GetTableCoords(position.x + maxDist, position.y + maxDist, position.z + maxDist);
@@ -63,23 +64,42 @@ void main()
     float radius = 2;
     
     uint pos = gl_GlobalInvocationID.x;
-    velocities[pos] = velocities[pos] + vec4(0, 0, 0, 0) * deltaTime;
-    prevPositions[pos] = vec4(xPositions[pos], yPositions[pos], zPositions[pos], 0);
+    vec4 currentPosition = vec4(xPositions[pos], yPositions[pos], zPositions[pos], 0);
     
-    xPositions[pos] = xPositions[pos] + velocities[pos].x * deltaTime;
-    yPositions[pos] = yPositions[pos] + velocities[pos].y * deltaTime;
-    zPositions[pos] = zPositions[pos] + velocities[pos].z * deltaTime;
+    velocities[pos] = velocities[pos] + vec4(0, -9.8, 0, 0) * deltaTime;
+    predictedPositions[pos] = currentPosition + velocities[pos] * deltaTime;
     
-    Query(vec3(xPositions[pos], yPositions[pos], zPositions[pos]), 2, pos);
+    Query(currentPosition, 2, pos);
     
-    for(int i = 0; i < querySize; i++)
-    {
-        int j = queryIDs[i];
-        float dist = distance(vec3(xPositions[pos], yPositions[pos], zPositions[pos]), vec3(xPositions[j], yPositions[j], zPositions[j]));
-        if(dist > 0 && dist < radius)
-        {
-            vec3 correction = normalize(vec3(xPositions[pos], yPositions[pos], zPositions[pos]) - vec3(xPositions[j], yPositions[j], zPositions[j]));
-            velocities[pos] = vec4(correction.xyz, 0) * 4;
-        }
-    }
+    //Calculate lambda
+    
+    barrier();
+    //Calculate delta p
+    vec4 deltaP;
+    
+    //Collision responses
+    
+    //Update predicted positions
+    predictedPositions[pos] = predictedPositions[pos] + deltaP;
+    
+    //Update velocity
+    velocities[pos] = 1/deltaTime * (predictedPositions[pos] - currentPosition);
+    
+    //Vorticity confinement and XSPH viscosity
+    
+    //Update positions
+    xPositions[pos] = predictedPositions[pos].x;
+    yPositions[pos] = predictedPositions[pos].y;
+    zPositions[pos] = predictedPositions[pos].z;
 }
+
+    //for(int i = 0; i < querySize; i++)
+    //{
+        //int j = queryIDs[i];
+        //float dist = distance(vec3(xPositions[pos], yPositions[pos], zPositions[pos]), vec3(xPositions[j], yPositions[j], zPositions[j]));
+        //if(dist > 0 && dist < radius)
+        //{
+            //vec3 correction = normalize(vec3(xPositions[pos], yPositions[pos], zPositions[pos]) - vec3(xPositions[j], yPositions[j], zPositions[j]));
+            //velocities[pos] = vec4(correction.xyz, 0) * 4;
+        //}
+    //}
