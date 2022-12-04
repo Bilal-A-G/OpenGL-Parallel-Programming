@@ -5,7 +5,6 @@ layout(std430, binding = 1) buffer positionsy {float yPositions[];};
 layout(std430, binding = 2) buffer positionsz {float zPositions[];};
 
 layout(std430, binding = 3) buffer vel {vec4 velocities[];};
-layout(std430, binding = 4) buffer prvpos {vec4 prevPositions[];};
 
 layout(std430, binding = 5) buffer cellst {int cellStart[];};
 layout(std430, binding = 6) buffer cellen {int cellEntries[];};
@@ -64,7 +63,6 @@ void main()
     
     uint pos = gl_GlobalInvocationID.x;
     velocities[pos] = velocities[pos] + vec4(0, 0, 0, 0) * deltaTime;
-    prevPositions[pos] = vec4(xPositions[pos], yPositions[pos], zPositions[pos], 0);
     
     xPositions[pos] = xPositions[pos] + velocities[pos].x * deltaTime;
     yPositions[pos] = yPositions[pos] + velocities[pos].y * deltaTime;
@@ -79,7 +77,7 @@ void main()
         if(dist > 0 && dist < radius)
         {
             vec3 correction = normalize(vec3(xPositions[pos], yPositions[pos], zPositions[pos]) - vec3(xPositions[j], yPositions[j], zPositions[j]));
-            velocities[pos] = vec4(correction.xyz, 0) * 4;
+            velocities[pos] = vec4(correction.xyz, 0) * 100;
         }
     }
 }

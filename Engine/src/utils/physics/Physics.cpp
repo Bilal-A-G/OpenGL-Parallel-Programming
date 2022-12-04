@@ -18,7 +18,6 @@ uint32_t ssbox;
 uint32_t ssboy;
 uint32_t ssboz;
 uint32_t ssbovel;
-uint32_t ssboprvpos;
 uint32_t ssbocellentries;
 uint32_t ssbocellstart;
 uint32_t ssboqueryids;
@@ -51,7 +50,6 @@ void TESLA::Physics::Init(uint32_t computeProgram, int size, std::vector<glm::ve
     glGenBuffers(1, &ssboy);
     glGenBuffers(1, &ssboz);
     glGenBuffers(1, &ssbovel);
-    glGenBuffers(1, &ssboprvpos);
     glGenBuffers(1, &ssbocellentries);
     glGenBuffers(1, &ssbocellstart);
     glGenBuffers(1, &ssboqueryids);
@@ -97,9 +95,6 @@ void TESLA::Physics::Init(uint32_t computeProgram, int size, std::vector<glm::ve
     glBufferData(GL_SHADER_STORAGE_BUFFER, zPositions.size() * sizeof(float), zPositions.data(), GL_DYNAMIC_DRAW);
 
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, ssbovel);
-    glBufferData(GL_SHADER_STORAGE_BUFFER, initialVelocities.size() * sizeof(glm::vec4), initialVelocities.data(), GL_DYNAMIC_DRAW);
-
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, ssboprvpos);
     glBufferData(GL_SHADER_STORAGE_BUFFER, initialVelocities.size() * sizeof(glm::vec4), initialVelocities.data(), GL_DYNAMIC_DRAW);
 
     std::vector<uint32_t> cellStart(tableSize + 1);
