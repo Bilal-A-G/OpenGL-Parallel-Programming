@@ -103,10 +103,6 @@ namespace TESLA
 
         glUniformMatrix4fv(m_projectionLocation, 1, GL_FALSE, &m_projectionMatrix[0][0]);
         glUniform3f(m_colourLocation, m_colour.x, m_colour.y, m_colour.z);
-        
-        // glUniform3f(m_viewerPositionLocation, cameraPos.x, cameraPos.y, cameraPos.z);
-        // glUniform3f(m_lightLocation, lightPos.x, lightPos.y, lightPos.z);
-        // glUniform3f(m_lightColourLocation, m_lightColour.x, m_lightColour.y, m_lightColour.z);
     }
 
     void Mesh::UpdateInstancePositions(std::vector<glm::vec4>& newPositions)

@@ -31,24 +31,21 @@ TESLA::Model* ImportModel(const char* fileName, int instanceCount)
 }
 
 TESLA::Model* particleInstance;
-
-int workGroupWidth = 256;
-int workGroupHeight = 256;
+int instanceCount = 65536;
 
 void Init()
 {
-    TESLA::Application::Start(windowWidth, windowHeight, "PBF Demo");
+    TESLA::Application::Start(windowWidth, windowHeight, "Particles Demo");
 
     TS_LOG_MESSAGE(TESLA_LOGGER::INFO, "OpenGL Renderer {0}", glGetString(GL_RENDERER));
     
-    TESLA::Model* sphere = ImportModel("Sphere", 65536);
+    TESLA::Model* sphere = ImportModel("Sphere", instanceCount);
     sphere->Scale(glm::vec3(0.1, 0.1, 0.1));
 
     TESLA::Shader computeShader(TESLA::ShaderType::Compute, "compute");
-    TESLA::Texture computeBuffer(TESLA::TextureType::Compute, workGroupWidth, workGroupHeight);
     uint32_t computeShaderProgram = TESLA::Shader::CompileProgram({computeShader});
     
-    TESLA::Physics::Init(computeShaderProgram, computeBuffer, workGroupWidth, workGroupHeight, instancePositions);
+    TESLA::Physics::Init(computeShaderProgram, instanceCount, instancePositions);
     
     particleInstance = new TESLA::Model(*sphere);
 
